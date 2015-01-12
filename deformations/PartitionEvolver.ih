@@ -79,7 +79,6 @@ DGtal::PartitionEvolver<TKSpace, TLabelImage, TDistanceImage, TExternImage, TTop
 
     /// frontier from sbel
     typedef FrontierPredicate<KSpace, LabelImage> SurfelPredicate;
-    /// !!!!!! be careful oLabel and iLabel are swaped because func is wrong
     SurfelPredicate surfelPred( myKSpace, myLabelImage, iLabel, oLabel ); 
     typedef LightExplicitDigitalSurface<KSpace, SurfelPredicate> Frontier;
     Frontier frontier( myKSpace, 

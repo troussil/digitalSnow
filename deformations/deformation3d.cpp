@@ -207,10 +207,11 @@ int main(int argc, char** argv)
 	  DGtal::trace.info() << "Time spent: " << sumt << std::endl;    
 	}
 
+      updateLabelImage( *labelImage, implicitFunction, 0 ); 
+      DGtal::trace.info() << "Volume: " << getSize(*labelImage, 0) << std::endl;    
       DGtal::trace.endBlock();
 
       //interactive display after the evolution
-      updateLabelImage( *labelImage, implicitFunction, 0 ); 
       if (vm.count("withVisu")) 
 	displayImageWithInfo( argc, argv, *labelImage, implicitFunction, a, b ); 
 
@@ -269,10 +270,11 @@ int main(int argc, char** argv)
 	  DGtal::trace.info() << "Time spent: " << sumt << std::endl;    
 	}
 
+      updateLabelImage( *labelImage, implicitFunction, 0.5 ); 
+      DGtal::trace.info() << "Volume: " << getSize(*labelImage, 0.5) << std::endl;    
       DGtal::trace.endBlock();
 
       //interactive display after the evolution
-      updateLabelImage( *labelImage, implicitFunction, 0.5 ); 
       if (vm.count("withVisu")) displayPartition( argc, argv, *labelImage ); 
 
     } else if (algo.compare("localLevelSet")==0)

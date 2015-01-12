@@ -31,23 +31,19 @@
 
 using namespace DGtal::functors;
 
-template< typename TViewer, typename TImage >
-bool displayPartition(TViewer& viewer, const TImage& img)
+template< typename TViewer, typename TKSpace, typename TImage >
+bool displayPartition(TViewer& viewer, const TKSpace& aKSpace, const TImage& img)
 {
   typedef typename TImage::Value Label; 
-
-  //KhalimskySpace
   Domain d = img.domain();
   Point aLowerBound = d.lowerBound(); 
   Point aUpperBound = d.upperBound(); 
-  KSpace aKSpace;
-  aKSpace.init(aLowerBound, aUpperBound, true);
 
   //container
   std::set<Cell> aSet; 
 
   //mark bels
-  for (DGtal::Dimension k = 0; k < KSpace::dimension; ++k )
+  for (DGtal::Dimension k = 0; k < TKSpace::dimension; ++k )
     {
       Cell dir_low_uid = aKSpace.uSpel( aLowerBound );
       Cell dir_up_uid = aKSpace.uGetDecr( aKSpace.uSpel( aUpperBound ), k);
@@ -76,19 +72,18 @@ bool displayPartition(TViewer& viewer, const TImage& img)
  
     SCell sbel = aKSpace.signs( *(aSet.begin()), true ); 
     //incident points
-    SCellToIncidentPoints<KSpace> func( aKSpace ); 
-    typename SCellToIncidentPoints<KSpace>::Output points = func( sbel ); 
+    SCellToIncidentPoints<TKSpace> func( aKSpace ); 
+    typename SCellToIncidentPoints<TKSpace>::Output points = func( sbel ); 
     Label iLabel( img( points.first ) ); 
     Label oLabel( img( points.second ) ); 
 
     /// frontier from sbel
-    typedef FrontierPredicate<KSpace, TImage> SurfelPredicate;
-    /// !!!!!! be careful oLabel and iLabel are swaped because func is wrong
-    SurfelPredicate surfelPred( aKSpace, img, oLabel, iLabel ); 
-    typedef LightExplicitDigitalSurface<KSpace, SurfelPredicate> Frontier;
+    typedef FrontierPredicate<TKSpace, TImage> SurfelPredicate;
+    SurfelPredicate surfelPred( aKSpace, img, iLabel, oLabel ); 
+    typedef LightExplicitDigitalSurface<TKSpace, SurfelPredicate> Frontier;
     Frontier frontier( aKSpace, 
 		       surfelPred, 
-		       SurfelAdjacency<KSpace::dimension>( true ), 
+		       SurfelAdjacency<TKSpace::dimension>( true ), 
 		       sbel ); 
 
     // tracking (and removing bels belonging to this frontier)
@@ -115,12 +110,19 @@ template< typename TImage >
 bool writePartition(const TImage& img, string filename, string format)
 {
 
+  //KhalimskySpace
+  Domain d = img.domain();
+  Point aLowerBound = d.lowerBound(); 
+  Point aUpperBound = d.upperBound(); 
+  KSpace aKSpace;
+  aKSpace.init(aLowerBound, aUpperBound, true);
+
   if (format.compare("pngc")==0)
   {
   #ifdef WITH_CAIRO
-    Board3DTo2D<> viewer;
+    Board3DTo2D<Space, KSpace> viewer;
     
-    displayPartition( viewer, img ); 
+    displayPartition( viewer, aKSpace, img ); 
     // Domain d = img.domain(); 
     // Domain::ConstIterator cIt = d.begin(); 
     // Domain::ConstIterator cItEnd = d.end(); 
@@ -214,11 +216,11 @@ bool writePartition(const TImage& img, string filename, string format)
     char* argv[1]; 
     argv[0] = argv1; 
     QApplication application(argc,argv);
-    Viewer3D<> viewer;
+    Viewer3D<Space, KSpace> viewer(aKSpace);
     viewer.show();
 
     //display
-    displayPartition(viewer, img); 
+    displayPartition(viewer, aKSpace, img); 
     viewer << Viewer3D<>::updateDisplay;
 
     if (QGLViewer::QGLViewerIndex(&viewer) > 0)
@@ -340,6 +342,8 @@ bool displayImageWithInfo(int argc, char** argv, const TLabelImage& limg,
 
   //KhalimskySpace
   Domain d = img.domain(); 
+  Point aLowerBound = d.lowerBound(); 
+  Point aUpperBound = d.upperBound(); 
   KSpace K;
   K.init(d.lowerBound(), d.upperBound(), true);
   //adjacency  
@@ -360,7 +364,7 @@ bool displayImageWithInfo(int argc, char** argv, const TLabelImage& limg,
 
   #ifdef WITH_VISU3D_QGLVIEWER
   QApplication application(argc,argv);
-  Viewer3D<> viewer;
+  Viewer3D<Space, KSpace> viewer(K);
   viewer.show();
 
   //good for Al
@@ -424,11 +428,20 @@ bool displayPartition(int argc, char** argv, const TImage& img)
 {
 
   #ifdef WITH_VISU3D_QGLVIEWER
+
+  //KhalimskySpace
+  Domain d = img.domain();
+  Point aLowerBound = d.lowerBound(); 
+  Point aUpperBound = d.upperBound(); 
+  KSpace aKSpace;
+  aKSpace.init(aLowerBound, aUpperBound, true);
+
+  //Viewer
   QApplication application(argc,argv);
-  Viewer3D<> viewer;
+  Viewer3D<Space, KSpace> viewer(aKSpace);
   viewer.show();
 
-  displayPartition(viewer, img); 
+  displayPartition(viewer, aKSpace, img); 
 
   viewer.setSnapshotFormat("PNG");  
   viewer << Viewer3D<>::updateDisplay;
